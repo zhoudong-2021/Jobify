@@ -1,8 +1,10 @@
-
+import {useEffect} from 'react'
+import axios from 'axios'
 
 const Dashboard = () => {
+
     return(
-        <h1>Dashboard Page</h1>
+        <h1>Dashboard</h1>
     )
 }
 

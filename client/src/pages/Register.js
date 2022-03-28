@@ -1,33 +1,58 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Wrapper from "../assets/wrappers/RegisterPage"
 import { Alert, FormRow, Logo } from "../components"
 import { useAppContext } from "../context/appContext"
+import {useNavigate} from 'react-router-dom'
 
 const initialState = {
     name: '',
     email: '',
     password: '',
     isMember: true
-}
+} 
 
 const Register = () => {
     const [values, setValues] = useState(initialState)
+    const navigate = useNavigate()
 
     // global context and useNavigate later
-    const {isLoading, alertOn, displayAlert, clearAlert} = useAppContext()
+    const {
+        user,
+        isLoading, 
+        alertOn, 
+        displayEmptyFieldAlert, 
+        clearAlert,
+        register,
+    } = useAppContext()
+
+    useEffect(() => {
+        if(user){
+            setTimeout(() => {
+                navigate('/')
+            }, 2000)  
+        }
+    },[user, useNavigate])
 
     const handleChange = (e) => {
         setValues({...values, [e.target.name]:e.target.value})
     }
 
     const onSubmit = (e) => {
-        e.preventDefault();
+        e.preventDefault()
+        clearAlert()
         const {name, email, password, isMember} = values
         if(!email || !password || (!isMember && !name)){
-            return displayAlert()
+            return displayEmptyFieldAlert()
         }
-        clearAlert()
-        console.log(values)
+        const user = {name, email, password}
+        if(isMember){
+            console.log('already a member');
+        }
+        else{
+            register(user)
+        }
+        
+
     }
 
     const toggleMember = () => {
@@ -64,7 +89,10 @@ const Register = () => {
                 {/* Alert field */}
                 {alertOn && <Alert />}
 
-                <button type='submit' className="btn btn-block">
+                <button 
+                disabled={isLoading}
+                type='submit' 
+                className="btn btn-block">
                     submit
                 </button>
 

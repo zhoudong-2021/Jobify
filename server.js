@@ -2,24 +2,39 @@ import express from 'express'
 import notFoundMiddleware from './middleware/not-found.js'
 import errorHandlerMiddleware from './middleware/error-handler.js'
 import dotenv from 'dotenv'
+import connectDB from './db/connect.js'
+import authRouter from './routes/authRoutes.js'
+import jobRouter from './routes/jobRoutes.js'
+import 'express-async-errors'
 
 dotenv.config()
 
-
 const app = express()
 
-app.get('/', (req, res) => {
-    res.send('Welcome')
-    // throw new Error('a server error')
-    
-})
+app.use(express.json())
 
-//middleware
+
+// routers
+app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/jobs', jobRouter)
+
+// middleware
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)
 
 const port = process.env.PORT || 5000
 
-app.listen(port, () => {
-    console.log(`Server is running on port: ${port}`);
-})
+// Start server
+const start = async() => {
+    try {
+        await connectDB(process.env.MONGO_URI)
+        app.listen(port, () => {
+            console.log(`Server is running on port: ${port}`);
+        })
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+start()
+
