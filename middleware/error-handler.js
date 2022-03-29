@@ -14,7 +14,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
         defaultError.statusCode = StatusCodes.BAD_REQUEST
     }
     console.log(err)
-    return res.status(defaultError.statusCode).json({ msg: defaultError })
+    return res.status(defaultError.statusCode).json( defaultError )
     
 }
 

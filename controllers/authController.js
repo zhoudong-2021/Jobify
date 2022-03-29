@@ -1,6 +1,6 @@
 import User from '../models/User.js'
 import { StatusCodes } from 'http-status-codes'
-import { badRequestError } from '../errors/index.js'
+import { badRequestError, UnauthenticatedError } from '../errors/customErrors.js'
 
 const register = async (req, res, next) => {
     try {
@@ -23,8 +23,24 @@ const register = async (req, res, next) => {
     }
 }
 
-const login = (req, res) => {
-    res.send('login')
+const login = async (req, res) => {
+    const {email, password} = req.body
+    if(!email || !password){
+        return badRequestError(res, 'All fileds must be filled.')
+    }
+    const user = await User.findOne({email}).select('+password')
+    if(!user){
+        return UnauthenticatedError(res, 'Invalid user.')
+    }
+    const isValidPassword = user.checkPassword(password)
+    console.log(password);
+    console.log(isValidPassword);
+    if(!isValidPassword){
+        return UnauthenticatedError(res, 'Invalid user')
+    }
+    user.password = undefined
+    const token = user.generateToken() 
+    return res.status(StatusCodes.OK).json({user, token})
 }
 
 const updateUser = (req, res) => {

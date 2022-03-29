@@ -15,7 +15,6 @@ const Register = () => {
     const [values, setValues] = useState(initialState)
     const navigate = useNavigate()
 
-    // global context and useNavigate later
     const {
         user,
         isLoading, 
@@ -23,6 +22,7 @@ const Register = () => {
         displayEmptyFieldAlert, 
         clearAlert,
         register,
+        login
     } = useAppContext()
 
     useEffect(() => {
@@ -31,7 +31,7 @@ const Register = () => {
                 navigate('/')
             }, 2000)  
         }
-    },[user, useNavigate])
+    },[user, navigate])
 
     const handleChange = (e) => {
         setValues({...values, [e.target.name]:e.target.value})
@@ -46,12 +46,11 @@ const Register = () => {
         }
         const user = {name, email, password}
         if(isMember){
-            console.log('already a member');
+            login(user)
         }
         else{
             register(user)
         }
-        
 
     }
 

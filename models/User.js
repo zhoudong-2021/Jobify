@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import validator from 'validator'
-import bcrypt from "bcryptjs/dist/bcrypt.js";
+import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
 
 const userSchema = new mongoose.Schema({
@@ -44,6 +44,11 @@ userSchema.pre('save', async function () {
 // Use instance methods to generate jwt token.
 userSchema.methods.generateToken = function () {
     return jwt.sign({ userId: this._id, name: this.name }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_LIFETIME })
+}
+
+// Check password
+userSchema.methods.checkPassword = function(password){
+    return bcrypt.compareSync(password, this.password)
 }
 
 

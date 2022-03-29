@@ -1,11 +1,14 @@
-import React, { useState, useReducer, useContext } from 'react'
+import React, { useReducer, useContext } from 'react'
 import reducer from './reducer'
-import { 
-    DISPLAY_ALERT, 
+import {
+    DISPLAY_ALERT,
     CLEAR_ALERT,
     REGISTER_USER_BEGIN,
     REGISTER_USER_SUCCESS,
-    REGISTER_USER_ERROR 
+    REGISTER_USER_ERROR,
+    LOGIN_USER_BEGIN,
+    LOGIN_USER_SUCCESS,
+    LOGIN_USER_ERROR,
 } from './actions'
 import axios from 'axios'
 
@@ -21,7 +24,7 @@ axios.interceptors.response.use(async response => {
 }, error => Promise.reject(error))
 
 // Store and delete user info from localstorage
-const addUserToLocalStorage = ({user, token}) => {
+const addUserToLocalStorage = ({ user, token }) => {
     localStorage.setItem('user', JSON.stringify(user))
     localStorage.setItem('token', token)
     localStorage.setItem('location', user.location)
@@ -44,7 +47,7 @@ export const initialState = {
     alertOn: false,
     alertText: '',
     alertType: '',
-    user: user? JSON.parse(user) : null,
+    user: user ? JSON.parse(user) : null,
     token: token,
     userLocation: userLocation || '',
     jobLocation: userLocation || '',
@@ -76,13 +79,39 @@ const AppProvider = ({ children }) => {
                     token: token
                 }
             })
-            // addUserToLocalStorage(user, token)
-            addUserToLocalStorage({user, token})
+            addUserToLocalStorage({ user, token })
         } catch (error) {
             console.log(error.response)
             dispatch({
                 type: REGISTER_USER_ERROR,
-                payload:{
+                payload: {
+                    msg: error.response.data.msg
+                }
+            })
+        }
+    }
+
+    // Login method
+    const login = async (userInfo) => {
+        dispatch({ type: LOGIN_USER_BEGIN })
+
+        try {
+            const res = await axios.post('/api/v1/auth/login', userInfo)
+
+            const { user, token } = res.data
+            dispatch({
+                type: LOGIN_USER_SUCCESS,
+                payload: {
+                    user: user,
+                    token: token
+                }
+            })
+            addUserToLocalStorage({ user, token })
+        } catch (error) {
+            console.log(error.response)
+            dispatch({
+                type: LOGIN_USER_ERROR,
+                payload: {
                     msg: error.response.data.msg
                 }
             })
@@ -91,7 +120,13 @@ const AppProvider = ({ children }) => {
 
     return (
         <AppContext.Provider
-            value={{ ...state, displayEmptyFieldAlert, clearAlert, register }}
+            value={{
+                ...state,
+                displayEmptyFieldAlert,
+                clearAlert,
+                register,
+                login,
+            }}
         >
             {children}
         </AppContext.Provider>

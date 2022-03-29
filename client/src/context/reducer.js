@@ -3,7 +3,10 @@ import {
     CLEAR_ALERT,
     REGISTER_USER_BEGIN,
     REGISTER_USER_SUCCESS,
-    REGISTER_USER_ERROR
+    REGISTER_USER_ERROR,
+    LOGIN_USER_BEGIN,
+    LOGIN_USER_SUCCESS,
+    LOGIN_USER_ERROR,
 } from "./actions"
 
 const reducer = (state, action) => {
@@ -25,6 +28,7 @@ const reducer = (state, action) => {
         }
     }
 
+    // Register actions
     if (action.type === REGISTER_USER_BEGIN) {
         return {
             ...state,
@@ -51,7 +55,39 @@ const reducer = (state, action) => {
             ...state,
             isLoading: false,
             alertOn: true,
-            alertText: action.payload.msg.msg,
+            alertText: action.payload.msg,
+            alertType: 'danger',
+        }
+    }
+
+    // Login actions
+    if (action.type === LOGIN_USER_BEGIN) {
+        return {
+            ...state,
+            isLoading: true
+        }
+    }
+
+    if (action.type === LOGIN_USER_SUCCESS) {
+        return {
+            ...state,
+            isLoading: false,
+            user: action.payload.user,
+            token: action.payload.token,
+            userLocation: action.payload.user.location,
+            jobLocation: action.payload.user.location,
+            alertOn: true,
+            alertText: 'Login successfully! Redirecting ...',
+            alertType: 'success',
+        }
+    }
+
+    if (action.type === LOGIN_USER_ERROR) {
+        return {
+            ...state,
+            isLoading: false,
+            alertOn: true,
+            alertText: action.payload.msg,
             alertType: 'danger',
         }
     }
