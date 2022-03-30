@@ -9,6 +9,8 @@ import {
     LOGIN_USER_BEGIN,
     LOGIN_USER_SUCCESS,
     LOGIN_USER_ERROR,
+    LOGOUT_USER,
+    TOGGLE_SIDEBAR,
 } from './actions'
 import axios from 'axios'
 
@@ -51,6 +53,7 @@ export const initialState = {
     token: token,
     userLocation: userLocation || '',
     jobLocation: userLocation || '',
+    showSidebar: false,
 }
 
 
@@ -118,13 +121,29 @@ const AppProvider = ({ children }) => {
         }
     }
 
+    const logoutUser = () => {
+        dispatch({
+            type: LOGOUT_USER
+        })
+        removeUserFromLocalStorage()
+        clearAlert()
+    }
+
+    const toggleSidebar = () => {
+        dispatch({
+            type: TOGGLE_SIDEBAR,
+        })
+    }
+
     return (
         <AppContext.Provider
             value={{
                 ...state,
                 displayEmptyFieldAlert,
+                toggleSidebar,
                 clearAlert,
                 register,
+                logoutUser,
                 login,
             }}
         >
