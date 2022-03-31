@@ -7,6 +7,9 @@ import {
     LOGIN_USER_BEGIN,
     LOGIN_USER_SUCCESS,
     LOGIN_USER_ERROR,
+    UPDATE_USER_BEGIN,
+    UPDATE_USER_SUCCESS,
+    UPDATE_USER_ERROR,
     TOGGLE_SIDEBAR,
     LOGOUT_USER,
 } from "./actions"
@@ -87,6 +90,38 @@ const reducer = (state, action) => {
     }
 
     if (action.type === LOGIN_USER_ERROR) {
+        return {
+            ...state,
+            isLoading: false,
+            alertOn: true,
+            alertText: action.payload.msg,
+            alertType: 'danger',
+        }
+    }
+
+    // Update User
+    if (action.type === UPDATE_USER_BEGIN) {
+        return {
+            ...state,
+            isLoading: true
+        }
+    }
+
+    if (action.type === UPDATE_USER_SUCCESS) {
+        console.log( action.payload.user);
+        return {
+            ...state,
+            isLoading: false,
+            user: action.payload.user,
+            userLocation: action.payload.user.location,
+            jobLocation: action.payload.user.location,
+            alertOn: true,
+            alertText: 'User Profile Updated!',
+            alertType: 'success',
+        }
+    }
+
+    if (action.type === UPDATE_USER_ERROR) {
         return {
             ...state,
             isLoading: false,

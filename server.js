@@ -7,6 +7,7 @@ import authRouter from './routes/authRoutes.js'
 import jobRouter from './routes/jobRoutes.js'
 // import 'express-async-errors'
 import morgan from 'morgan'
+import authMiddleware from './middleware/auth.js'
 
 dotenv.config()
 
@@ -17,7 +18,7 @@ app.use(express.json())
 
 // routers
 app.use('/api/v1/auth', authRouter)
-app.use('/api/v1/jobs', jobRouter)
+app.use('/api/v1/jobs', authMiddleware, jobRouter)
 
 // middleware
 app.use(notFoundMiddleware)
@@ -26,12 +27,12 @@ app.use(errorHandlerMiddleware)
 // print log info
 if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'))
-  }
+}
 
 const port = process.env.PORT || 5000
 
 // Start server
-const start = async() => {
+const start = async () => {
     try {
         await connectDB(process.env.MONGO_URI)
         app.listen(port, () => {

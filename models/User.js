@@ -37,13 +37,14 @@ const userSchema = new mongoose.Schema({
 })
 // Use pre middleware to hash password.
 userSchema.pre('save', async function () {
+    if(!this.isModified('password')) return 
     const salt = await bcrypt.genSalt(10)
     this.password = await bcrypt.hash(this.password, salt)
 });
 
 // Use instance methods to generate jwt token.
 userSchema.methods.generateToken = function () {
-    return jwt.sign({ userId: this._id, name: this.name }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_LIFETIME })
+    return jwt.sign({ userId: this._id}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_LIFETIME })
 }
 
 // Check password

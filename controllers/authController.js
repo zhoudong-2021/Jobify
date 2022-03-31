@@ -1,6 +1,7 @@
 import User from '../models/User.js'
 import { StatusCodes } from 'http-status-codes'
-import { badRequestError, UnauthenticatedError } from '../errors/customErrors.js'
+import { badRequestError, notFoundError, UnauthenticatedError } from '../errors/customErrors.js'
+
 
 const register = async (req, res, next) => {
     try {
@@ -33,8 +34,6 @@ const login = async (req, res) => {
         return UnauthenticatedError(res, 'Invalid user.')
     }
     const isValidPassword = user.checkPassword(password)
-    console.log(password);
-    console.log(isValidPassword);
     if(!isValidPassword){
         return UnauthenticatedError(res, 'Invalid user')
     }
@@ -43,8 +42,26 @@ const login = async (req, res) => {
     return res.status(StatusCodes.OK).json({user, token})
 }
 
-const updateUser = (req, res) => {
-    res.send('updateUser')
+const updateUser = async (req, res) => {
+    
+    const {name, email, lastName, location} = req.body
+    if (!email || !name || !lastName || !location){
+        return badRequestError(res, 'All fileds must be filled.')
+    }
+    let user = {}
+    try {
+        user = await User.findById(req.userId)
+        if(!user) return notFoundError(res, 'Unable to find user')
+        user.name = name
+        user.email = email
+        user.lastName = lastName
+        user.location = location
+        const result = await user.save()
+    } catch (error) {
+        console.log(error);
+    }
+    
+    return res.status(StatusCodes.OK).json({user})
 }
 
 export {

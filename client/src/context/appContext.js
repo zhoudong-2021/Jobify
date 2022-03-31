@@ -9,21 +9,22 @@ import {
     LOGIN_USER_BEGIN,
     LOGIN_USER_SUCCESS,
     LOGIN_USER_ERROR,
+    UPDATE_USER_BEGIN,
+    UPDATE_USER_SUCCESS,
+    UPDATE_USER_ERROR,
     LOGOUT_USER,
     TOGGLE_SIDEBAR,
 } from './actions'
 import axios from 'axios'
+
+
 
 const sleep = (delay) => {
     return new Promise(resolve => {
         setTimeout(resolve, delay);
     })
 }
-// Set 1s delay of response
-axios.interceptors.response.use(async response => {
-    await sleep(1000)
-    return response
-}, error => Promise.reject(error))
+
 
 // Store and delete user info from localstorage
 const addUserToLocalStorage = ({ user, token }) => {
@@ -60,6 +61,32 @@ export const initialState = {
 const AppContext = React.createContext()
 const AppProvider = ({ children }) => {
     const [state, dispatch] = useReducer(reducer, initialState)
+
+    // Set base URI and token in request
+    const authFetch = axios.create({
+        baseURL: '/api/v1',
+    })
+
+    authFetch.interceptors.request.use(
+        config => {
+            config.headers.common['Authorization'] = `Bearer ${state.token}`
+            return config
+        },
+        error => {
+            return Promise.reject(error)
+        }
+    )
+
+    axios.interceptors.response.use(async response => {
+        // Set 1s delay of response
+        await sleep(1000)
+        return response
+    }, error => {
+        if(error.response.status === 401){
+            logoutUser()
+        }
+        return Promise.reject(error)
+    })
 
     const displayEmptyFieldAlert = () => {
         dispatch({ type: DISPLAY_ALERT })
@@ -111,13 +138,13 @@ const AppProvider = ({ children }) => {
             })
             addUserToLocalStorage({ user, token })
         } catch (error) {
-            console.log(error.response)
+            if(error.response.status !== 401){
             dispatch({
                 type: LOGIN_USER_ERROR,
                 payload: {
                     msg: error.response.data.msg
                 }
-            })
+            })}
         }
     }
 
@@ -129,11 +156,40 @@ const AppProvider = ({ children }) => {
         clearAlert()
     }
 
+    // Update user
+    const updateUser = async (currentUser) => {
+        dispatch({
+            type: UPDATE_USER_BEGIN
+        })
+        try {
+            const { data } = await authFetch.patch('/auth/updateUser', currentUser)
+            console.log(data.user)
+            const {user} = data
+            const token = state.token
+            dispatch({
+                type: UPDATE_USER_SUCCESS,
+                payload: {
+                    user: data.user
+                }
+            })
+            addUserToLocalStorage({user, token})
+        } catch (error) {
+            dispatch({
+                type: UPDATE_USER_ERROR,
+                payload: {
+                    msg: error.response.data.msg
+                }
+            })
+        }
+    }
+
     const toggleSidebar = () => {
         dispatch({
             type: TOGGLE_SIDEBAR,
         })
     }
+
+
 
     return (
         <AppContext.Provider
@@ -142,6 +198,7 @@ const AppProvider = ({ children }) => {
                 displayEmptyFieldAlert,
                 toggleSidebar,
                 clearAlert,
+                updateUser,
                 register,
                 logoutUser,
                 login,
