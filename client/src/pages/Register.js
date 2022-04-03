@@ -29,9 +29,10 @@ const Register = () => {
         if(user){
             setTimeout(() => {
                 navigate('/')
+                clearAlert()
             }, 2000)  
         }
-    },[user, navigate])
+    },[user, navigate, clearAlert])
 
     const handleChange = (e) => {
         setValues({...values, [e.target.name]:e.target.value})

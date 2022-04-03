@@ -42,7 +42,7 @@ const login = async (req, res) => {
     return res.status(StatusCodes.OK).json({user, token})
 }
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     
     const {name, email, lastName, location} = req.body
     if (!email || !name || !lastName || !location){
@@ -58,7 +58,8 @@ const updateUser = async (req, res) => {
         user.location = location
         const result = await user.save()
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        next(error)
     }
     
     return res.status(StatusCodes.OK).json({user})

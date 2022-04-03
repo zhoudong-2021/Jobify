@@ -14,6 +14,20 @@ import {
     UPDATE_USER_ERROR,
     LOGOUT_USER,
     TOGGLE_SIDEBAR,
+    HANDLE_CHANGE,
+    CLEAR_VALUES,
+    CREAT_JOB_BEGIN,
+    CREAT_JOB_SUCCESS,
+    CREAT_JOB_ERROR,
+    GET_JOBS_BEGIN,
+    GET_JOBS_SUCCESS,
+    SET_EDIT_JOB,
+    EDIT_JOB_BEGIN,
+    EDIT_JOB_SUCCESS,
+    EDIT_JOB_ERROR,
+    DELETE_JOB_BEGIN,
+    DELETE_JOB_ERROR,
+    DELETE_JOB_SUCCESS,
 } from './actions'
 import axios from 'axios'
 
@@ -53,7 +67,19 @@ export const initialState = {
     user: user ? JSON.parse(user) : null,
     token: token,
     userLocation: userLocation || '',
+    isEditing: false,
+    editJobId: '',
+    company: '',
+    position: '',
     jobLocation: userLocation || '',
+    jobTypeOptions: ['full-time', 'part-time', 'remote', 'internship'],
+    jobType: 'full-time',
+    statusOptions: ['pending', 'interview', 'declined'],
+    status: 'pending',
+    jobs: [],
+    totalJobs: 0,
+    numberOfPages: 1,
+    page: 1,
     showSidebar: false,
 }
 
@@ -79,10 +105,10 @@ const AppProvider = ({ children }) => {
 
     axios.interceptors.response.use(async response => {
         // Set 1s delay of response
-        await sleep(1000)
+        // await sleep(1000)
         return response
     }, error => {
-        if(error.response.status === 401){
+        if (error.response.status === 401) {
             logoutUser()
         }
         return Promise.reject(error)
@@ -91,8 +117,13 @@ const AppProvider = ({ children }) => {
     const displayEmptyFieldAlert = () => {
         dispatch({ type: DISPLAY_ALERT })
     }
+
     const clearAlert = () => {
         dispatch({ type: CLEAR_ALERT })
+    }
+
+    const clearAlertAuto = () => {
+        setTimeout(clearAlert, 2000)
     }
 
     // Register method
@@ -138,13 +169,14 @@ const AppProvider = ({ children }) => {
             })
             addUserToLocalStorage({ user, token })
         } catch (error) {
-            if(error.response.status !== 401){
-            dispatch({
-                type: LOGIN_USER_ERROR,
-                payload: {
-                    msg: error.response.data.msg
-                }
-            })}
+            if (error.response.status !== 401) {
+                dispatch({
+                    type: LOGIN_USER_ERROR,
+                    payload: {
+                        msg: error.response.data.msg
+                    }
+                })
+            }
         }
     }
 
@@ -163,8 +195,7 @@ const AppProvider = ({ children }) => {
         })
         try {
             const { data } = await authFetch.patch('/auth/updateUser', currentUser)
-            console.log(data.user)
-            const {user} = data
+            const { user } = data
             const token = state.token
             dispatch({
                 type: UPDATE_USER_SUCCESS,
@@ -172,7 +203,8 @@ const AppProvider = ({ children }) => {
                     user: data.user
                 }
             })
-            addUserToLocalStorage({user, token})
+            clearAlertAuto()
+            addUserToLocalStorage({ user, token })
         } catch (error) {
             dispatch({
                 type: UPDATE_USER_ERROR,
@@ -181,6 +213,119 @@ const AppProvider = ({ children }) => {
                 }
             })
         }
+    }
+
+    // Create job
+    const createJob = async (jobInfo) => {
+        dispatch({ type: CREAT_JOB_BEGIN })
+        try {
+            const { data } = await authFetch.post('/jobs', jobInfo)
+            const job = data.job
+            dispatch({
+                type: CREAT_JOB_SUCCESS,
+                payload: job
+            })
+            clearAlertAuto()
+            clearValues()
+        } catch (error) {
+            console.log(error)
+            dispatch({
+                type: CREAT_JOB_ERROR,
+                payload: { msg: error.response.data.msg }
+            })
+            clearAlertAuto()
+        }
+    }
+
+    // Get jobs
+    const getJobs = async () => {
+        // Clear alert msg from other components
+        clearAlert()
+        dispatch({ type: GET_JOBS_BEGIN })
+        try {
+            const { data } = await authFetch.get('/jobs')
+            const { jobs, totalJobs, numberOfPages } = data
+            dispatch({
+                type: GET_JOBS_SUCCESS,
+                payload: {
+                    jobs,
+                    totalJobs,
+                    numberOfPages
+                }
+            })
+        } catch (error) {
+            console.log(error)
+            logoutUser()
+        }
+    }
+
+    // Edit job
+    const setEditJob = (id) => {
+        dispatch({
+            type: SET_EDIT_JOB,
+            payload: { id }
+        })
+    }
+
+    const editJob = async() => {
+        dispatch({type: EDIT_JOB_BEGIN})
+        const {
+            editJobId,
+            company,
+            position,
+            jobLocation,
+            jobType,
+            status } = state
+        try {
+            const job = await authFetch.patch(`/jobs/${editJobId}`, {
+                company,
+                position,
+                jobLocation,
+                jobType,
+                status, 
+            })
+            dispatch({
+                type: EDIT_JOB_SUCCESS,
+            })
+            clearValues()
+        } catch (error) {
+            dispatch({
+                type: EDIT_JOB_ERROR,
+                payload: {msg:error.response.data.msg}
+            })
+        }
+        clearAlertAuto()
+    }
+
+    // Delete Job 
+    const deleteJob = async (id) => {
+        dispatch({type: DELETE_JOB_BEGIN})
+        try {
+        await authFetch.delete(`/jobs/${id}`)
+        dispatch({type: DELETE_JOB_SUCCESS})
+        getJobs()
+        } catch (error) {
+            console.log(error)
+            dispatch({type: DELETE_JOB_ERROR})
+        }
+    }
+
+    // Handle input values
+    const handleChange = (name, value) => {
+        dispatch({
+            type: HANDLE_CHANGE,
+            payload: {
+                name,
+                value
+            }
+        })
+    }
+
+    // Clear input values
+    const clearValues = () => {
+        dispatch({
+            type: CLEAR_VALUES
+        })
     }
 
     const toggleSidebar = () => {
@@ -198,10 +343,18 @@ const AppProvider = ({ children }) => {
                 displayEmptyFieldAlert,
                 toggleSidebar,
                 clearAlert,
+                clearAlertAuto,
                 updateUser,
                 register,
                 logoutUser,
                 login,
+                handleChange,
+                clearValues,
+                createJob,
+                getJobs,
+                setEditJob,
+                editJob,
+                deleteJob
             }}
         >
             {children}
