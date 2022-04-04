@@ -13,10 +13,8 @@ const errorHandlerMiddleware = (err, req, res, next) => {
         defaultError.msg =  `${Object.keys(err.keyValue)} has been used.`
         defaultError.statusCode = StatusCodes.BAD_REQUEST
     }
-    console.log(err)
     res.status(defaultError.statusCode).json( defaultError )
     next()
 }
-
 
 export default errorHandlerMiddleware
