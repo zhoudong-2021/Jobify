@@ -16,6 +16,7 @@ import {
     TOGGLE_SIDEBAR,
     HANDLE_CHANGE,
     CLEAR_VALUES,
+    CLEAR_FILTERS,
     CREAT_JOB_BEGIN,
     CREAT_JOB_SUCCESS,
     CREAT_JOB_ERROR,
@@ -26,21 +27,11 @@ import {
     EDIT_JOB_SUCCESS,
     EDIT_JOB_ERROR,
     DELETE_JOB_BEGIN,
-    DELETE_JOB_ERROR,
     DELETE_JOB_SUCCESS,
     GET_STATS_BEGIN,
     GET_STATS_SUCCESS,
-    GET_STATS_ERROR,
 } from './actions'
 import axios from 'axios'
-
-
-
-const sleep = (delay) => {
-    return new Promise(resolve => {
-        setTimeout(resolve, delay);
-    })
-}
 
 
 // Store and delete user info from localstorage
@@ -152,7 +143,6 @@ const AppProvider = ({ children }) => {
             })
             addUserToLocalStorage({ user, token })
         } catch (error) {
-            console.log(error.response)
             dispatch({
                 type: REGISTER_USER_ERROR,
                 payload: {
@@ -238,7 +228,6 @@ const AppProvider = ({ children }) => {
             clearAlertAuto()
             clearValues()
         } catch (error) {
-            console.log(error)
             dispatch({
                 type: CREAT_JOB_ERROR,
                 payload: { msg: error.response.data.msg }
@@ -251,9 +240,14 @@ const AppProvider = ({ children }) => {
     const getJobs = async () => {
         // Clear alert msg from other components
         clearAlert()
+        const {search, searchStatus, searchType, sort, page} = state
+        let query = `status=${searchStatus}&jobType=${searchType}&sort=${sort}&page=${page}`
+        if(search){
+            query +=`&search=${search}`
+        }
         dispatch({ type: GET_JOBS_BEGIN })
         try {
-            const { data } = await authFetch.get('/jobs')
+            const { data } = await authFetch.get('/jobs?'+query)
             const { jobs, totalJobs, numberOfPages } = data
             dispatch({
                 type: GET_JOBS_SUCCESS,
@@ -264,7 +258,6 @@ const AppProvider = ({ children }) => {
                 }
             })
         } catch (error) {
-            console.log(error)
             logoutUser()
         }
     }
@@ -287,7 +280,7 @@ const AppProvider = ({ children }) => {
             jobType,
             status } = state
         try {
-            const job = await authFetch.patch(`/jobs/${editJobId}`, {
+            await authFetch.patch(`/jobs/${editJobId}`, {
                 company,
                 position,
                 jobLocation,
@@ -315,8 +308,7 @@ const AppProvider = ({ children }) => {
         dispatch({type: DELETE_JOB_SUCCESS})
         getJobs()
         } catch (error) {
-            console.log(error)
-            dispatch({type: DELETE_JOB_ERROR})
+            logoutUser()
         }
     }
 
@@ -335,8 +327,6 @@ const AppProvider = ({ children }) => {
                 }
             })
         } catch (error) {
-            console.log(error)
-            dispatch({type: GET_STATS_ERROR})
             logoutUser()
         }
     }
@@ -361,7 +351,7 @@ const AppProvider = ({ children }) => {
 
     // Clear filters
     const clearFilters = () => {
-        console.log('clear filters')
+        dispatch({type: CLEAR_FILTERS})
     }
 
     const toggleSidebar = () => {
@@ -369,8 +359,6 @@ const AppProvider = ({ children }) => {
             type: TOGGLE_SIDEBAR,
         })
     }
-
-
 
     return (
         <AppContext.Provider

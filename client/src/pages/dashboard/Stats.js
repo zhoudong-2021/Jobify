@@ -12,6 +12,7 @@ const Stats = () => {
 
     useEffect(() => {
         getStats()
+        // eslint-disable-next-line
     }, [])
 
     if (isLoading) return <Loading isCenter={true} />

@@ -12,6 +12,7 @@ import {
     UPDATE_USER_ERROR,
     HANDLE_CHANGE,
     CLEAR_VALUES,
+    CLEAR_FILTERS,
     TOGGLE_SIDEBAR,
     LOGOUT_USER,
     CREAT_JOB_BEGIN,
@@ -25,10 +26,8 @@ import {
     EDIT_JOB_ERROR,
     DELETE_JOB_BEGIN,
     DELETE_JOB_SUCCESS,
-    DELETE_JOB_ERROR,
     GET_STATS_BEGIN,
     GET_STATS_SUCCESS,
-    GET_STATS_ERROR,
 } from "./actions"
 
 import { initialState } from "./appContext"
@@ -126,7 +125,6 @@ const reducer = (state, action) => {
     }
 
     if (action.type === UPDATE_USER_SUCCESS) {
-        console.log(action.payload.user);
         return {
             ...state,
             isLoading: false,
@@ -182,6 +180,17 @@ const reducer = (state, action) => {
         return { ...state, ...initialState }
     }
 
+    // Clear search filters
+    if(action.type === CLEAR_FILTERS){
+        const initialState = {
+            search:'',
+            searchStatus:'all',
+            searchType:'all',
+            sort:'latest',
+        }
+        return { ...state, ...initialState }
+    }
+
     // Toggle side bar 
     if (action.type === TOGGLE_SIDEBAR) {
         return {
@@ -232,8 +241,7 @@ const reducer = (state, action) => {
             isLoading: false,
             jobs: action.payload.jobs,
             totalJobs: action.payload.totalJobs,
-            numberOfPages: action.payload.numberOfPages,
-            page: action.payload.page,
+            numberOfPages: action.payload.numberOfPages
         }
     }
 
@@ -297,13 +305,6 @@ const reducer = (state, action) => {
         }
     }
 
-    if(action.type === DELETE_JOB_ERROR){
-        return {
-            ...state,
-            isLoading:false
-        }
-    }
-
     // Get stats data
     if(action.type === GET_STATS_BEGIN){
         return {
@@ -318,13 +319,6 @@ const reducer = (state, action) => {
             isLoading:false,
             defaultStats: action.payload.defaultStats,
             monthlyApplications: action.payload.monthlyApplications,
-        }
-    }
-
-    if(action.type === GET_STATS_ERROR){
-        return {
-            ...state,
-            isLoading:false
         }
     }
 

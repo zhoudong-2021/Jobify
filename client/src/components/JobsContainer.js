@@ -2,6 +2,7 @@ import { useAppContext } from "../context/appContext"
 import { Loading, Job } from "../components"
 import Wrapper from "../assets/wrappers/JobsContainer"
 import { useEffect } from "react"
+import { PageBtnContainer } from '.'
 
 
 const JobsContainer = () => {
@@ -11,12 +12,17 @@ const JobsContainer = () => {
         totalJobs,
         numberOfPages,
         page,
-        isLoading
+        isLoading,
+        search,
+        searchStatus,
+        searchType,
+        sort
     } = useAppContext()
 
     useEffect(() => {
         getJobs()
-    }, [])
+        // eslint-disable-next-line
+    }, [page, search, searchStatus, searchType, sort])
 
     if (isLoading) return <Loading isCenter={true} />
 
@@ -27,19 +33,18 @@ const JobsContainer = () => {
             </Wrapper>
         )
 
-
     return (
         <Wrapper>
             <h5>
-                {jobs.length} job{jobs.length > 1 && 's'} listed
+                {totalJobs} job{jobs.length > 1 && 's'} listed
             </h5>
 
             <div className="jobs">
-            {jobs.map(job => {
-                return <Job key={job._id} job={job} />
-            })}
+                {jobs.map(job => {
+                    return <Job key={job._id} job={job} />
+                })}
             </div>
-
+            {numberOfPages > 1 && <PageBtnContainer />}
         </Wrapper>
 
     )
