@@ -23,3 +23,5 @@ const start = async () => {
 }
 
 start()
+
+// run npm populate in command to populate mock data

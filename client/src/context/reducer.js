@@ -26,6 +26,9 @@ import {
     DELETE_JOB_BEGIN,
     DELETE_JOB_SUCCESS,
     DELETE_JOB_ERROR,
+    GET_STATS_BEGIN,
+    GET_STATS_SUCCESS,
+    GET_STATS_ERROR,
 } from "./actions"
 
 import { initialState } from "./appContext"
@@ -279,12 +282,6 @@ const reducer = (state, action) => {
         }
     }
 
-
-
-
-
-
-
     // Delete job
     if(action.type === DELETE_JOB_BEGIN){
         return {
@@ -301,6 +298,30 @@ const reducer = (state, action) => {
     }
 
     if(action.type === DELETE_JOB_ERROR){
+        return {
+            ...state,
+            isLoading:false
+        }
+    }
+
+    // Get stats data
+    if(action.type === GET_STATS_BEGIN){
+        return {
+            ...state,
+            isLoading:true
+        }
+    }
+
+    if(action.type === GET_STATS_SUCCESS){
+        return {
+            ...state,
+            isLoading:false,
+            defaultStats: action.payload.defaultStats,
+            monthlyApplications: action.payload.monthlyApplications,
+        }
+    }
+
+    if(action.type === GET_STATS_ERROR){
         return {
             ...state,
             isLoading:false

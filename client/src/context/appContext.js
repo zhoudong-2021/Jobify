@@ -28,6 +28,9 @@ import {
     DELETE_JOB_BEGIN,
     DELETE_JOB_ERROR,
     DELETE_JOB_SUCCESS,
+    GET_STATS_BEGIN,
+    GET_STATS_SUCCESS,
+    GET_STATS_ERROR,
 } from './actions'
 import axios from 'axios'
 
@@ -80,7 +83,14 @@ export const initialState = {
     totalJobs: 0,
     numberOfPages: 1,
     page: 1,
+    defaultStats: {},
+    monthlyApplications:[],
     showSidebar: false,
+    search:'',
+    searchType: 'all',
+    searchStatus: 'all',
+    sort: 'latest',
+    sortOptions: ['latest', 'oldest', 'a-z', 'z-a'],
 }
 
 
@@ -310,6 +320,27 @@ const AppProvider = ({ children }) => {
         }
     }
 
+    // Get Stats Data
+    const getStats = async () => {
+        clearAlert()
+        dispatch({type: GET_STATS_BEGIN})
+        try {
+            const {data} = await authFetch.get('/jobs/stats')
+            const {defaultStats, monthlyApplications} = data
+            dispatch({
+                type: GET_STATS_SUCCESS,
+                payload: {
+                    defaultStats, 
+                    monthlyApplications
+                }
+            })
+        } catch (error) {
+            console.log(error)
+            dispatch({type: GET_STATS_ERROR})
+            logoutUser()
+        }
+    }
+
     // Handle input values
     const handleChange = (name, value) => {
         dispatch({
@@ -326,6 +357,11 @@ const AppProvider = ({ children }) => {
         dispatch({
             type: CLEAR_VALUES
         })
+    }
+
+    // Clear filters
+    const clearFilters = () => {
+        console.log('clear filters')
     }
 
     const toggleSidebar = () => {
@@ -354,7 +390,9 @@ const AppProvider = ({ children }) => {
                 getJobs,
                 setEditJob,
                 editJob,
-                deleteJob
+                deleteJob,
+                getStats,
+                clearFilters
             }}
         >
             {children}
